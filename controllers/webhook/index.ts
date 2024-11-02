@@ -78,7 +78,7 @@ async function updateStudent(student: Student): Promise<void> {
     last_name: student.last_name,
     grade_level_id: student.grade_level_id,
     reading_level_id: student.reading_level_id,
-    has_iep: student.has_iep
+    has_iep: Boolean(student.has_iep)
   };
   
   await api.put(`/students/${student.id}`, updateData);
