@@ -31,7 +31,6 @@ export default async function (req: Request, res: Response) {
         res.json({ success: false, message: 'Invalid id' });
         return;
     }
-
     const putStudentSchema = z.object({
         username: z.string(),
         sis_id: z.string().optional(),
@@ -39,10 +38,9 @@ export default async function (req: Request, res: Response) {
         last_name: z.string(),
         grade_level_id: z.number(),
         reading_level_id: z.number(),
-        has_iep: z.boolean(),
+        has_iep: z.union([z.boolean(), z.number()]).transform(v => Boolean(v)),
     });
     const { data: putData, success } = putStudentSchema.safeParse(req.body);
-
     if (!success) {
         res.status(400);
         res.json({
