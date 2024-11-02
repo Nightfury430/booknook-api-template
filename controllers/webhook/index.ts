@@ -40,7 +40,7 @@ const api = axios.create({
   }
 });
 
-const gradeLevels = {
+const constGradeLevels = {
   "K": "Kindergarten",
   "1": "1st",
   "2": "2nd",
@@ -52,16 +52,16 @@ const gradeLevels = {
   "8": "8th"
 }
 
-async function findStudents(): Promise<Student[] | null> {
-  const response = await api.get(`/students`);
+async function findStudent(sis_id: string): Promise<Student | null> {
+  const response = await api.get(`/students?sisId=${sis_id}`);
   const students = response.data;
-  return students.students.length > 0 ? students.students : null;
+  return students.students.length > 0 ? students.students[0] : null;
 }
 
-async function findGradeLevel(gradeName: string): Promise<GradeLevel | null> {
-  const response = await api.get(`/grade_levels/${gradeName}`);
+async function findGradeLevels(): Promise<GradeLevel[] | null> {
+  const response = await api.get(`/grade_levels`);
   const gradeLevels = response.data;
-  return gradeLevels.grade_levels.length > 0 ? gradeLevels.grade_levels[0] : null;
+  return gradeLevels.grade_levels.length > 0 ? gradeLevels.grade_levels : null;
 }
 
 async function findReadingLevel(code: string): Promise<ReadingLevel | null> {
@@ -88,17 +88,17 @@ export default async function webhook(req, res) {
   try {
     const data: WebhookRequest = req.body;
 
-    const students = await findStudents();
-    const student = students?.filter((student) => student.sis_id === data.sis_id)[0];
+    const student = await findStudent(data.sis_id);
 
     if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
+      return res.status(200).json({ message: 'Student not found' });
     }
 
     // Handle grade update
     if (data.type === 'grade_update' && data.grade) {
-      const convertedGrade = gradeLevels[data.grade];
-      const gradeLevel = await findGradeLevel(convertedGrade); // Convert "1" to "1st"
+      const convertedGrade = constGradeLevels[data.grade];
+      const gradeLevels = await findGradeLevels(); // Convert "1" to "1st"
+      const gradeLevel = gradeLevels?.filter((gradeLevel) => gradeLevel.name === convertedGrade)[0];
       if (!gradeLevel) {
         return res.status(400).json({ error: 'Invalid grade level' });
       }
