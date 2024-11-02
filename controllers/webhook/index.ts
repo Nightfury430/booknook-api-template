@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { students } from './../../data/students';
 
 // Types
 interface WebhookRequest {
@@ -41,6 +40,17 @@ const api = axios.create({
   }
 });
 
+const gradeLevels = {
+  "K": "Kindergarten",
+  "1": "1st",
+  "2": "2nd",
+  "3": "3rd",
+  "4": "4th",
+  "5": "5th",
+  "6": "6th",
+  "7": "7th",
+  "8": "8th"
+}
 
 async function findStudents(): Promise<Student[] | null> {
   const response = await api.get(`/students`);
@@ -87,7 +97,7 @@ export default async function webhook(req, res) {
 
     // Handle grade update
     if (data.type === 'grade_update' && data.grade) {
-      const convertedGrade = data.grade === 'K' ? 'Kindergarten' : data.grade === '1' ? '1st' : data.grade === '2' ? '2nd' : data.grade === '3' ? '3rd' : data.grade + 'th';
+      const convertedGrade = gradeLevels[data.grade];
       const gradeLevel = await findGradeLevel(convertedGrade); // Convert "1" to "1st"
       if (!gradeLevel) {
         return res.status(400).json({ error: 'Invalid grade level' });
